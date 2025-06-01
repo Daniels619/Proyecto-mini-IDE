@@ -1,12 +1,5 @@
 # Mini IDE Web
 
-## Datos del Estudiante y Curso
-[Aquí va tu información personal]
-- Nombre del estudiante: 
-- Materia: 
-- Profesor: 
-- Semestre: 
-
 ## Estructura del Proyecto
 
 ### 1. `app.py`
