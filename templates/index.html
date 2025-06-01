@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini IDE Web LD - Análisis de Código</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Hecho por logan daniel Alvarez Castro*/
+        :root {
+            /* Tema Oscuro (default) */
+            --bg-color: #1e1e2f;
+            --editor-bg: #2b2b3d;
+            --text-color: #fff;
+            --accent-color: #6c757d;
+            --accent-color-rgb: 108, 117, 125;
+            --output-bg: #282c34;
+            --output-text: #d4d4d4;
+            --table-bg: #2b2b3d;
+            --table-header-bg: #1e1e2f;
+            --table-border: #6c757d;
+            --table-text: #d4d4d4;
+            --table-header-text: #fff;
+            --table-hover-bg: #3a3a4f;
+        }
+
+        /* Tema Claro */
+        [data-theme="light"] {
+            --bg-color: #f8f9fa;
+            --editor-bg: #ffffff;
+            --text-color: #212529;
+            --accent-color: #6c757d;
+            --accent-color-rgb: 108, 117, 125;
+            --output-bg: #97bcfd;
+            --output-text: #000000;
+            --table-bg: #ffffff;
+            --table-header-bg: #e9ecef;
+            --table-border: #dee2e6;
+            --table-text: #495057;
+            --table-header-text: #212529;
+            --table-hover-bg: #f8f9fa;
+        }
+
+        /* Tema Alto Contraste */
+        [data-theme="high-contrast"] {
+            --bg-color: #000000;
+            --editor-bg: #000000;
+            --text-color: #ffffff;
+            --accent-color: rgb(255, 242, 4);
+            --accent-color-rgb: 4, 255, 33;
+            --output-bg: #000000;
+            --output-text: rgb(245, 233, 0);
+            --table-bg: #000000;
+            --table-header-bg: #000000;
+            --table-border: rgb(255, 251, 4);
+            --table-text: #fff204;
+            --table-header-text: #ffffff;
+            --table-hover-bg: #001400;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-top: 20px;
+            transition: all 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .editor {
+            background-color: var(--editor-bg);
+            color: var(--text-color);
+            border: 1px solid var(--accent-color);
+            padding: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 15px;
+            resize: vertical;
+            min-height: 200px;
+            border-radius: 4px;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .btn-custom {
+            background-color: var(--accent-color);
+            color: var(--text-color);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            margin: 0 5px;
+        }
+
+        .btn-custom:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .output-box {
+            background-color: var(--output-bg);
+            color: var(--output-text);
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            min-height: 100px;
+            border: 1px solid var(--accent-color);
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            margin: 1rem 0;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .navbar {
+            background-color: var(--editor-bg) !important;
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .navbar-brand {
+            color: var(--text-color) !important;
+            font-size: 1.2rem;
+        }
+
+        .theme-select {
+            background-color: var(--editor-bg);
+            color: var(--text-color);
+            border: 1px solid var(--accent-color);
+            border-radius: 4px;
+            padding: 0.375rem 0.75rem;
+        }
+
+        .theme-select option {
+            background-color: var(--editor-bg);
+            color: var(--text-color);
+        }
+
+        .info-table {
+            background-color: var(--table-bg);
+            border: 1px solid var(--table-border);
+            border-radius: 4px;
+            padding: 1rem;
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .info-table-title {
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+            text-align: center;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .table {
+            color: var(--table-text);
+            margin-bottom: 0;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .table th, .table td {
+            border-color: var(--table-border);
+            padding: 0.5rem;
+            background-color: var(--table-bg);
+            color: var(--table-text);
+            transition: all 0.3s ease;
+        }
+
+        .table thead th {
+            background-color: var(--table-header-bg);
+            border-bottom: 2px solid var(--table-border);
+            color: var(--table-header-text);
+            font-weight: 600;
+        }
+
+        .table tbody tr:hover {
+            background-color: var(--table-hover-bg);
+        }
+
+        .table tbody tr:hover td {
+            color: var(--table-header-text);
+        }
+
+        .small.text-muted {
+            color: var(--table-text) !important;
+            opacity: 0.8;
+        }
+
+        /* Ajuste para la nota debajo de la tabla */
+        .info-table .small.text-muted {
+            color: var(--table-text) !important;
+            border-top: 1px solid var(--table-border);
+            margin-top: 1rem;
+            padding-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar shadow-sm">
+    <div class="container">
+        <span class="navbar-brand">Mini IDE Web LD</span>
+        <select class="theme-select" onchange="cambiarTema(this.value)" id="themeSelector">
+            <option value="dark">Tema Oscuro</option>
+            <option value="light">Tema Claro</option>
+            <option value="high-contrast">Alto Contraste</option>
+        </select>
+    </div>
+</nav>
+
+<div class="container">
+    <textarea id="code" class="editor" placeholder="Ingresa tu código aquí..."></textarea>
+
+    <div class="d-flex justify-content-center gap-2">
+        <button class="btn btn-custom" onclick="analizarLexico()">Análisis Léxico</button>
+        <button class="btn btn-custom" onclick="analizarSintactico()">Análisis Sintáctico</button>
+        <button class="btn btn-custom" onclick="ejecutarTuring()">Máquina de Turing</button>
+    </div>
+
+    <h5 class="section-title">Resultado</h5>
+    <div id="resultado" class="output-box"></div>
+
+    <h5 class="section-title">Errores</h5>
+    <div id="errores" class="output-box text-danger"></div>
+
+    <h5 class="section-title mt-5">Documentación</h5>
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="info-table">
+                <h6 class="info-table-title">Análisis Léxico</h6>
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Ejemplos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Variables</td>
+                            <td>x, y, nombre</td>
+                        </tr>
+                        <tr>
+                            <td>Números</td>
+                            <td>123, 3.14, -42</td>
+                        </tr>
+                        <tr>
+                            <td>Operadores</td>
+                            <td>+, -, *, /, =</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="info-table">
+                <h6 class="info-table-title">Análisis Sintáctico</h6>
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Estructura</th>
+                            <th>Ejemplo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Asignación</td>
+                            <td>x = 10;</td>
+                        </tr>
+                        <tr>
+                            <td>Expresión</td>
+                            <td>a + b * 2</td>
+                        </tr>
+                        <tr>
+                            <td>Declaración</td>
+                            <td>var x = 5;</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="info-table">
+                <h6 class="info-table-title">Máquina de Turing</h6>
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Entrada</th>
+                            <th>Resultado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Cadena "a"</td>
+                            <td>Humano</td>
+                        </tr>
+                        <tr>
+                            <td>Cadena "b"</td>
+                            <td>Robot</td>
+                        </tr>
+                        <tr>
+                            <td>Formato</td>
+                            <td>Solo 'a' y 'b'</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="mt-2 small text-muted">
+                    Nota: La cadena debe contener solo caracteres 'a' y 'b'. 
+                    Si termina en 'a', se clasifica como Humano.
+                    Si termina en 'b', se clasifica como Robot.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Función para manejar errores en las peticiones fetch
+    async function handleFetchError(response) {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    }
+
+    // Función para mostrar errores en la interfaz
+    function mostrarError(error) {
+        document.getElementById('resultado').textContent = '';
+        document.getElementById('errores').textContent = `Error: ${error.message}`;
+    }
+
+    async function analizarLexico() {
+        try {
+            const code = document.getElementById('code').value;
+            const res = await fetch('/analizar-lexico', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            });
+            
+            const data = await handleFetchError(res);
+            
+            if (Array.isArray(data.resultado)) {
+                let texto = '';
+                data.resultado.forEach(token => {
+                    texto += `${token.tipo}: ${token.valor}\n`;
+                });
+                document.getElementById('resultado').textContent = texto;
+            } else {
+                document.getElementById('resultado').textContent = data.resultado;
+            }
+            
+            document.getElementById('errores').textContent = '';
+        } catch (error) {
+            mostrarError(error);
+        }
+    }
+
+    async function analizarSintactico() {
+        try {
+            const code = document.getElementById('code').value;
+            const res = await fetch('/analizar-sintactico', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            });
+            
+            const data = await handleFetchError(res);
+            document.getElementById('resultado').textContent = data.resultado;
+
+            if (data.errores && data.errores.length > 0) {
+                let erroresTexto = 'Errores encontrados:\n';
+                data.errores.forEach(error => {
+                    erroresTexto += `➡ Línea ${error.linea}: ${error.mensaje}\n`;
+                });
+                document.getElementById('errores').textContent = erroresTexto;
+            } else {
+                document.getElementById('errores').textContent = '';
+            }
+        } catch (error) {
+            mostrarError(error);
+        }
+    }
+
+    async function ejecutarTuring() {
+        try {
+            const code = document.getElementById('code').value;
+            const res = await fetch('/turing', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            });
+            
+            const data = await handleFetchError(res);
+            document.getElementById('resultado').textContent = data.resultado;
+            document.getElementById('errores').textContent = '';
+        } catch (error) {
+            mostrarError(error);
+        }
+    }
+
+    function cambiarTema(tema) {
+        document.documentElement.setAttribute('data-theme', tema);
+        localStorage.setItem('tema', tema);
+    }
+
+    // Cargar tema guardado al iniciar
+    document.addEventListener('DOMContentLoaded', () => {
+        const temaGuardado = localStorage.getItem('tema') || 'dark';
+        document.documentElement.setAttribute('data-theme', temaGuardado);
+        document.getElementById('themeSelector').value = temaGuardado;
+    });
+</script>
+
+</body>
+</html>
